@@ -1,0 +1,5 @@
+Đây là một đoạn văn mẫu để kiểm tra lỗi chính tả.
+Hôm nay thời tiết rất đẹp và tôi cảm thấy vui vẻ.
+Nhưng có vài từ bị viết sai như "chinhs" và "muâ".
+Và cả những từ vô nghĩa như "lkjhgf" hay "zzzzz".
+Dòng này thì hoàn toàn đúng chính tả.
