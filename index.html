@@ -41,207 +41,201 @@
   </style>
 </head>
 <body class="bg-[var(--background)] text-[var(--foreground)] antialiased min-h-screen p-4 md:p-6">
-  <div class="max-w-5xl mx-auto space-y-5">
+  <div class="max-w-7xl mx-auto space-y-4">
     <!-- Header -->
-    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-[var(--border)]">
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-[var(--border)]">
       <div>
-        <h1 class="text-xl font-bold tracking-tight">Căn Chỉnh Lề & Thể Thức Word (Nghị định 30/2020/NĐ-CP)</h1>
-        <p class="text-xs text-[var(--muted-foreground)] mt-1">
-          Xử lý trực tiếp file <code>.docx</code> trên trình duyệt — không gửi dữ liệu ra ngoài.
+        <h1 class="text-lg md:text-xl font-bold tracking-tight">Căn Chỉnh Lề & Kiểm Tra Văn Bản Word (Nghị định 30/2020/NĐ-CP)</h1>
+        <p class="text-xs text-[var(--muted-foreground)] mt-0.5">
+          Chuẩn hóa khổ A4, lề, phông Times New Roman, tìm và sửa từ vô nghĩa trực tiếp trên trình duyệt.
         </p>
       </div>
-      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)] self-start">
-        Khổ A4 · Times New Roman
-      </span>
+      <div class="flex items-center gap-2 self-start">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)]">
+          Khổ A4 · Times New Roman
+        </span>
+      </div>
     </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-      <!-- Cột trái: Upload & Cấu hình -->
-      <div class="lg:col-span-7 space-y-4">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <!-- CỘT TRÁI (5/12): Tải file, Cấu hình lề, Kiểm tra thể thức & Từ lỗi -->
+      <div class="lg:col-span-5 space-y-4">
         <!-- Upload Box -->
-        <div id="dropZone" class="bg-[var(--card)] border-2 border-dashed border-[var(--border)] rounded-xl p-5 text-center cursor-pointer transition hover:border-[var(--primary)]">
+        <div id="dropZone" class="bg-[var(--card)] border-2 border-dashed border-[var(--border)] rounded-xl p-4 text-center cursor-pointer transition hover:border-[var(--primary)]">
           <input id="fileInput" type="file" accept=".docx" class="hidden" />
-          <div class="space-y-1.5">
+          <div class="space-y-1">
             <div class="text-sm font-semibold">Kéo thả file Word (.docx) vào đây hoặc bấm để chọn</div>
             <div id="fileNameLabel" class="text-xs text-[var(--muted-foreground)]">Chưa chọn file nào</div>
           </div>
         </div>
 
         <!-- Cấu hình thông số NĐ 30 -->
-        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-4">
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3.5">
           <div class="flex items-center justify-between">
             <h2 class="text-sm font-semibold">Thông số căn lề & trình bày</h2>
-            <button id="resetBtn" type="button" class="text-xs text-[var(--link)] hover:underline">Khôi phục mặc định chuẩn</button>
+            <button id="resetBtn" type="button" class="text-xs text-[var(--link)] hover:underline">Mặc định chuẩn</button>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
             <label class="space-y-1 block">
-              <span class="text-[var(--muted-foreground)]">Lề trên (20–25 mm)</span>
-              <input id="topMm" type="number" step="0.5" value="20" class="w-full px-2.5 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
+              <span class="text-[var(--muted-foreground)]">Trên (20–25)</span>
+              <input id="topMm" type="number" step="0.5" value="20" class="w-full px-2 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
             </label>
             <label class="space-y-1 block">
-              <span class="text-[var(--muted-foreground)]">Lề dưới (20–25 mm)</span>
-              <input id="bottomMm" type="number" step="0.5" value="20" class="w-full px-2.5 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
+              <span class="text-[var(--muted-foreground)]">Dưới (20–25)</span>
+              <input id="bottomMm" type="number" step="0.5" value="20" class="w-full px-2 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
             </label>
             <label class="space-y-1 block">
-              <span class="text-[var(--muted-foreground)]">Lề trái (30–35 mm)</span>
-              <input id="leftMm" type="number" step="0.5" value="30" class="w-full px-2.5 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
+              <span class="text-[var(--muted-foreground)]">Trái (30–35)</span>
+              <input id="leftMm" type="number" step="0.5" value="30" class="w-full px-2 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
             </label>
             <label class="space-y-1 block">
-              <span class="text-[var(--muted-foreground)]">Lề phải (15–20 mm)</span>
-              <input id="rightMm" type="number" step="0.5" value="15" class="w-full px-2.5 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
-            </label>
-          </div>
-
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2 border-t border-[var(--border)]">
-            <label class="space-y-1 block">
-              <span class="text-[var(--muted-foreground)]">Cỡ chữ (13–14 pt)</span>
-              <input id="fontSizePt" type="number" step="0.5" value="14" class="w-full px-2.5 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
-            </label>
-            <label class="space-y-1 block">
-              <span class="text-[var(--muted-foreground)]">Giãn dòng (1.0–1.5)</span>
-              <input id="lineSpacing" type="number" step="0.05" value="1.15" class="w-full px-2.5 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
-            </label>
-            <label class="space-y-1 block">
-              <span class="text-[var(--muted-foreground)]">Thụt dòng (1–1.27 cm)</span>
-              <input id="indentCm" type="number" step="0.05" value="1.27" class="w-full px-2.5 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
-            </label>
-            <label class="space-y-1 block">
-              <span class="text-[var(--muted-foreground)]">Cách đoạn (≥6 pt)</span>
-              <input id="spaceAfterPt" type="number" step="1" value="6" class="w-full px-2.5 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
+              <span class="text-[var(--muted-foreground)]">Phải (15–20)</span>
+              <input id="rightMm" type="number" step="0.5" value="15" class="w-full px-2 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
             </label>
           </div>
 
-          <div class="flex flex-wrap items-center gap-4 pt-1 text-xs">
-            <label class="inline-flex items-center gap-2 cursor-pointer">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs pt-2 border-t border-[var(--border)]">
+            <label class="space-y-1 block">
+              <span class="text-[var(--muted-foreground)]">Cỡ chữ (pt)</span>
+              <input id="fontSizePt" type="number" step="0.5" value="14" class="w-full px-2 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
+            </label>
+            <label class="space-y-1 block">
+              <span class="text-[var(--muted-foreground)]">Giãn dòng</span>
+              <input id="lineSpacing" type="number" step="0.05" value="1.15" class="w-full px-2 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
+            </label>
+            <label class="space-y-1 block">
+              <span class="text-[var(--muted-foreground)]">Thụt (cm)</span>
+              <input id="indentCm" type="number" step="0.05" value="1.27" class="w-full px-2 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
+            </label>
+            <label class="space-y-1 block">
+              <span class="text-[var(--muted-foreground)]">Đoạn (pt)</span>
+              <input id="spaceAfterPt" type="number" step="1" value="6" class="w-full px-2 py-1.5 rounded-lg bg-[var(--background)] border border-[var(--border)] font-mono" />
+            </label>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 pt-1 text-xs">
+            <label class="inline-flex items-center gap-1.5 cursor-pointer">
               <input id="formatBody" type="checkbox" checked class="accent-[var(--primary)]" />
-              <span>Căn đều 2 bên & thụt đầu dòng nội dung</span>
+              <span>Căn đều & thụt đầu dòng</span>
             </label>
-            <label class="inline-flex items-center gap-2 cursor-pointer">
+            <label class="inline-flex items-center gap-1.5 cursor-pointer">
               <input id="forcePortrait" type="checkbox" checked class="accent-[var(--primary)]" />
-              <span>Ép khổ A4 dọc (210 × 297 mm)</span>
+              <span>Ép khổ A4 dọc</span>
             </label>
           </div>
 
           <div id="configWarnings" class="hidden text-xs p-2.5 rounded-lg bg-[var(--secondary)] border border-[var(--border)] text-[var(--warning)] space-y-1"></div>
 
-          <div class="flex flex-wrap gap-2.5 pt-2">
-            <button id="formatBtn" type="button" disabled class="px-4 py-2 rounded-lg text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40 cursor-pointer">
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <button id="formatBtn" type="button" disabled class="w-full sm:w-auto px-4 py-2 rounded-lg text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40 cursor-pointer">
               Chuẩn hóa & Tải file (.docx)
             </button>
           </div>
         </div>
 
         <!-- Tạo file mẫu -->
-        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 class="text-sm font-semibold">Chưa có file? Tạo nhanh văn bản mẫu chuẩn NĐ 30</h2>
-            <p class="text-xs text-[var(--muted-foreground)]">Bao gồm Quốc hiệu, Tiêu ngữ, Số/ký hiệu, Trích yếu, Nơi nhận, Chữ ký.</p>
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-3.5 flex items-center justify-between gap-2">
+          <div class="text-xs">
+            <div class="font-semibold">Tạo file mẫu chuẩn NĐ 30</div>
+            <div class="text-[var(--muted-foreground)]">Công văn, Quyết định, Tờ trình...</div>
           </div>
-          <div class="flex items-center gap-2">
-            <select id="templateType" class="px-2.5 py-1.5 rounded-lg text-xs bg-[var(--background)] border border-[var(--border)]">
+          <div class="flex items-center gap-1.5">
+            <select id="templateType" class="px-2 py-1.5 rounded-lg text-xs bg-[var(--background)] border border-[var(--border)]">
               <option value="CÔNG VĂN">Công văn</option>
               <option value="QUYẾT ĐỊNH">Quyết định</option>
               <option value="TỜ TRÌNH">Tờ trình</option>
               <option value="BÁO CÁO">Báo cáo</option>
             </select>
-            <button id="createTemplateBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)] hover:opacity-90 cursor-pointer">
-              Tải mẫu .docx
+            <button id="createTemplateBtn" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)] hover:opacity-90 cursor-pointer">
+              Tải mẫu
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Cột phải: Xem trước lề A4 & Báo cáo kiểm tra -->
-      <div class="lg:col-span-5 space-y-4">
-        <!-- A4 Live Preview -->
+        <!-- Audit Report + A4 Mini Preview -->
         <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
           <div class="flex items-center justify-between">
-            <h2 class="text-sm font-semibold">Mô phỏng tỷ lệ lề trang A4</h2>
-            <span class="text-xs font-mono text-[var(--muted-foreground)]">210 × 297 mm</span>
+            <h2 class="text-sm font-semibold">Kiểm tra thể thức & Lề A4</h2>
+            <span id="auditBadge" class="text-xs px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--muted-foreground)]">Chờ file</span>
           </div>
-          <div class="flex justify-center py-1">
-            <div id="a4Preview" class="relative bg-[var(--background)] border border-[var(--border)] shadow-sm" style="width: 180px; height: 254.5px;">
-              <div id="marginBox" class="absolute border border-dashed border-[var(--primary)] bg-[var(--secondary)]/30 flex items-center justify-center text-[10px] text-[var(--muted-foreground)] text-center p-2">
-                Vùng nội dung<br />Times New Roman
-              </div>
-              <span id="lblTop" class="absolute left-1/2 -translate-x-1/2 top-0.5 text-[10px] font-mono text-[var(--muted-foreground)]">20</span>
-              <span id="lblBottom" class="absolute left-1/2 -translate-x-1/2 bottom-0.5 text-[10px] font-mono text-[var(--muted-foreground)]">20</span>
-              <span id="lblLeft" class="absolute top-1/2 -translate-y-1/2 left-0.5 text-[10px] font-mono text-[var(--muted-foreground)]">30</span>
-              <span id="lblRight" class="absolute top-1/2 -translate-y-1/2 right-0.5 text-[10px] font-mono text-[var(--muted-foreground)]">15</span>
+          <div class="flex items-start gap-3">
+            <div id="a4Preview" class="relative shrink-0 bg-[var(--background)] border border-[var(--border)] shadow-sm" style="width: 90px; height: 127px;">
+              <div id="marginBox" class="absolute border border-dashed border-[var(--primary)] bg-[var(--secondary)]/30"></div>
+              <span id="lblTop" class="absolute left-1/2 -translate-x-1/2 top-0 text-[9px] font-mono text-[var(--muted-foreground)]">20</span>
+              <span id="lblBottom" class="absolute left-1/2 -translate-x-1/2 bottom-0 text-[9px] font-mono text-[var(--muted-foreground)]">20</span>
+              <span id="lblLeft" class="absolute top-1/2 -translate-y-1/2 left-0.5 text-[9px] font-mono text-[var(--muted-foreground)]">30</span>
+              <span id="lblRight" class="absolute top-1/2 -translate-y-1/2 right-0.5 text-[9px] font-mono text-[var(--muted-foreground)]">15</span>
+            </div>
+            <div id="auditDetails" class="text-xs text-[var(--muted-foreground)] space-y-1 flex-1">
+              Tải lên một file <code>.docx</code> để xem kết quả kiểm tra khổ giấy, lề trang và phông chữ.
             </div>
           </div>
         </div>
 
-        <!-- Audit Report -->
+        <!-- Spellcheck Summary -->
         <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-2.5">
           <div class="flex items-center justify-between">
-            <h2 class="text-sm font-semibold">Kiểm tra thể thức file</h2>
-            <span id="auditBadge" class="text-xs px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--muted-foreground)]">Chờ file</span>
-          </div>
-          <div id="auditDetails" class="text-xs text-[var(--muted-foreground)] space-y-1.5">
-            Tải lên một file <code>.docx</code> để xem kết quả kiểm tra khổ giấy, lề trang và phông chữ.
-          </div>
-        </div>
-
-        <!-- Spellcheck / Meaningless Words Report -->
-        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <h2 class="text-sm font-semibold">Tìm lỗi từ không có nghĩa</h2>
+            <h2 class="text-sm font-semibold">Danh sách từ không có nghĩa</h2>
             <span id="spellBadge" class="text-xs px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--muted-foreground)]">Đang tải từ điển...</span>
           </div>
-          <div class="space-y-2">
-            <textarea id="quickSpellInput" rows="2" placeholder="Hoặc dán nhanh văn bản tiếng Việt vào đây để tìm từ vô nghĩa..." class="w-full px-2.5 py-1.5 rounded-lg text-xs bg-[var(--background)] border border-[var(--border)] resize-y"></textarea>
+          <div class="flex gap-1.5">
+            <input id="quickSpellInput" type="text" placeholder="Hoặc dán nhanh câu tiếng Việt vào đây..." class="flex-1 px-2.5 py-1.5 rounded-lg text-xs bg-[var(--background)] border border-[var(--border)]" />
             <button id="quickSpellBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)] hover:opacity-90 cursor-pointer">
-              Kiểm tra văn bản
+              Kiểm tra
             </button>
           </div>
-          <div id="spellDetails" class="text-xs text-[var(--muted-foreground)] space-y-1.5 max-h-60 overflow-y-auto">
+          <div id="spellDetails" class="text-xs text-[var(--muted-foreground)] space-y-1 max-h-44 overflow-y-auto">
             Tải file <code>.docx</code> hoặc nhập văn bản để phát hiện từ sai chính tả / không có nghĩa.
           </div>
         </div>
       </div>
+
+      <!-- CỘT PHẢI (7/12): Khung xem & chỉnh sửa văn bản dạng trang A4 chuyên nghiệp -->
+      <section id="editorSection" class="lg:col-span-7 bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden shadow-sm lg:sticky lg:top-4">
+        <!-- Toolbar trên cùng -->
+        <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-[var(--secondary)]/60 border-b border-[var(--border)]">
+          <div>
+            <h2 class="text-sm font-semibold">Xem & Chỉnh sửa văn bản trực tiếp (Trang A4)</h2>
+            <p class="text-[11px] text-[var(--muted-foreground)]">
+              Bấm vào <span class="bg-red-500/20 text-[var(--error)] px-1 rounded underline decoration-wavy">từ tô đỏ</span> để sửa nhanh, hoặc bấm <strong>Sửa đoạn</strong>.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="loadSampleBtn" type="button" class="px-2.5 py-1.5 rounded-lg text-xs bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] hover:opacity-90 cursor-pointer">
+              Thử văn bản mẫu
+            </button>
+            <span id="editedCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)]">0 đoạn đã sửa</span>
+            <button id="downloadEditedBtn" type="button" disabled class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40 cursor-pointer">
+              Lưu & Tải .docx
+            </button>
+          </div>
+        </div>
+
+        <!-- Popover sửa từ nhanh -->
+        <div id="wordFixPopover" class="hidden fixed z-50 w-72 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl p-3 space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold">Sửa từ: <code id="popTargetWord" class="text-[var(--error)]"></code></span>
+            <button id="popCloseBtn" type="button" class="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">✕</button>
+          </div>
+          <div id="popSuggestions" class="flex flex-wrap gap-1.5"></div>
+          <div class="flex gap-1.5 pt-1">
+            <input id="popCustomInput" type="text" class="flex-1 px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-xs" placeholder="Nhập từ thay thế..." />
+            <button id="popApplyBtn" type="button" class="px-2.5 py-1 rounded bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold">Sửa</button>
+          </div>
+          <button id="popIgnoreBtn" type="button" class="text-[11px] text-[var(--muted-foreground)] hover:underline">Bỏ qua từ này trong phiên làm việc</button>
+        </div>
+
+        <!-- Khung nền xám chứa tờ giấy A4 -->
+        <div class="bg-[var(--background)] p-4 md:p-6 max-h-[76vh] overflow-y-auto">
+          <div id="a4Sheet" class="mx-auto bg-white text-slate-900 shadow-lg border border-slate-200 rounded-sm min-h-[540px] transition-all" style="font-family: 'Times New Roman', Times, serif; padding: 28px 22px 28px 42px;">
+            <div id="docViewerBody" class="space-y-2.5 text-sm text-slate-500">
+              Hãy tải file <code class="text-slate-700">.docx</code> ở cột bên trái hoặc bấm <strong class="text-slate-800">Thử văn bản mẫu</strong> để xem và chỉnh sửa trực tiếp trên trang A4 tại đây.
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-
-    <!-- Xem & Chỉnh sửa trực tiếp văn bản -->
-    <section id="editorSection" class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border)]">
-        <div>
-          <h2 class="text-sm font-semibold">Xem & Chỉnh sửa trực tiếp văn bản</h2>
-          <p class="text-xs text-[var(--muted-foreground)]">
-            Bấm vào <span class="bg-red-500/20 text-[var(--error)] px-1 rounded underline decoration-wavy">từ tô đỏ</span> để chọn gợi ý sửa nhanh, hoặc bấm <strong>Sửa đoạn</strong> để chỉnh toàn bộ đoạn văn.
-          </p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <button id="loadSampleBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)] hover:opacity-90 cursor-pointer">
-            Thử văn bản mẫu
-          </button>
-          <span id="editedCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--muted-foreground)]">0 đoạn đã sửa</span>
-          <button id="downloadEditedBtn" type="button" disabled class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40 cursor-pointer">
-            Lưu chỉnh sửa & Tải .docx
-          </button>
-        </div>
-      </div>
-
-      <!-- Popover sửa từ nhanh -->
-      <div id="wordFixPopover" class="hidden fixed z-50 w-72 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-lg p-3 space-y-2 text-xs">
-        <div class="flex items-center justify-between">
-          <span class="font-semibold">Sửa từ: <code id="popTargetWord" class="text-[var(--error)]"></code></span>
-          <button id="popCloseBtn" type="button" class="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">✕</button>
-        </div>
-        <div id="popSuggestions" class="flex flex-wrap gap-1.5"></div>
-        <div class="flex gap-1.5 pt-1">
-          <input id="popCustomInput" type="text" class="flex-1 px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-xs" placeholder="Nhập từ thay thế..." />
-          <button id="popApplyBtn" type="button" class="px-2.5 py-1 rounded bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold">Sửa</button>
-        </div>
-        <button id="popIgnoreBtn" type="button" class="text-[11px] text-[var(--muted-foreground)] hover:underline">Bỏ qua từ này trong phiên làm việc</button>
-      </div>
-
-      <!-- Khung trang văn bản -->
-      <div id="docViewerBody" class="bg-[var(--background)] border border-[var(--border)] rounded-lg p-4 md:p-6 space-y-2.5 max-h-[520px] overflow-y-auto text-xs text-[var(--muted-foreground)]" style="font-family: 'Times New Roman', Times, serif;">
-        Hãy tải file <code>.docx</code> ở phía trên hoặc bấm <strong>Thử văn bản mẫu</strong> để xem, phát hiện từ sai và chỉnh sửa trực tiếp tại đây.
-      </div>
-    </section>
 
     <footer class="pt-3 border-t border-[var(--border)] text-xs text-[var(--muted-foreground)] flex flex-wrap justify-between gap-2">
       <span>Mã nguồn mở trên <a href="https://github.com/thanhtungces/Kiemtra" target="_blank" class="text-[var(--link)] hover:underline">GitHub (thanhtungces/Kiemtra)</a></span>
@@ -667,16 +661,21 @@
 
     function updatePreviewAndWarnings() {
       const c = getCfg();
-      const scaleX = 180 / 210;
-      const scaleY = 254.5 / 297;
-      els.marginBox.style.top = `${Math.max(4, c.topMm * scaleY)}px`;
-      els.marginBox.style.bottom = `${Math.max(4, c.bottomMm * scaleY)}px`;
-      els.marginBox.style.left = `${Math.max(4, c.leftMm * scaleX)}px`;
-      els.marginBox.style.right = `${Math.max(4, c.rightMm * scaleX)}px`;
+      const scaleX = 90 / 210;
+      const scaleY = 127 / 297;
+      els.marginBox.style.top = `${Math.max(2, c.topMm * scaleY)}px`;
+      els.marginBox.style.bottom = `${Math.max(2, c.bottomMm * scaleY)}px`;
+      els.marginBox.style.left = `${Math.max(2, c.leftMm * scaleX)}px`;
+      els.marginBox.style.right = `${Math.max(2, c.rightMm * scaleX)}px`;
       els.lblTop.textContent = c.topMm;
       els.lblBottom.textContent = c.bottomMm;
       els.lblLeft.textContent = c.leftMm;
       els.lblRight.textContent = c.rightMm;
+
+      const a4Sheet = document.getElementById("a4Sheet");
+      if (a4Sheet) {
+        a4Sheet.style.padding = `${Math.max(12, c.topMm * 1.4)}px ${Math.max(12, c.rightMm * 1.4)}px ${Math.max(12, c.bottomMm * 1.4)}px ${Math.max(12, c.leftMm * 1.4)}px`;
+      }
 
       const warns = [];
       if (c.topMm < 20 || c.topMm > 25) warns.push(`Lề trên (${c.topMm} mm) ngoài chuẩn 20–25 mm.`);
@@ -846,20 +845,20 @@
       docViewerBody.innerHTML = "";
       docParagraphs.forEach((pObj, pArrIdx) => {
         const row = document.createElement("div");
-        row.className = `group relative rounded-md px-2.5 py-1.5 transition border ${pObj.edited ? "border-[var(--primary)]/40 bg-[var(--primary)]/5" : "border-transparent hover:border-[var(--border)]"}`;
+        row.className = `group relative rounded-md px-2 py-1 transition border ${pObj.edited ? "border-blue-400/60 bg-blue-50/70" : "border-transparent hover:border-slate-200"}`;
 
         const headerBar = document.createElement("div");
-        headerBar.className = "flex items-center justify-between gap-2 mb-0.5 text-[11px] font-sans text-[var(--muted-foreground)]";
-        headerBar.innerHTML = `<span>Đoạn ${pArrIdx + 1}${pObj.edited ? ' · <strong class="text-[var(--primary)]">Đã sửa</strong>' : ""}</span>`;
+        headerBar.className = "flex items-center justify-between gap-2 mb-0.5 text-[11px] font-sans text-slate-400";
+        headerBar.innerHTML = `<span>Đoạn ${pArrIdx + 1}${pObj.edited ? ' · <strong class="text-blue-600">Đã sửa</strong>' : ""}</span>`;
 
         const editBtn = document.createElement("button");
         editBtn.type = "button";
-        editBtn.className = "opacity-80 group-hover:opacity-100 text-[11px] text-[var(--link)] hover:underline cursor-pointer";
+        editBtn.className = "opacity-0 group-hover:opacity-100 transition text-[11px] text-blue-600 hover:underline cursor-pointer";
         editBtn.textContent = "Sửa đoạn";
         headerBar.appendChild(editBtn);
 
         const contentDiv = document.createElement("div");
-        contentDiv.className = "text-[14px] leading-relaxed text-[var(--foreground)] whitespace-pre-wrap";
+        contentDiv.className = "text-[14px] leading-relaxed text-slate-900 whitespace-pre-wrap";
 
         // Render text với highlight từ nghi vấn
         let html = "";
@@ -870,7 +869,7 @@
           const end = start + tok.length;
           html += escapeHtml(pObj.text.slice(lastIdx, start));
           if (isSuspectToken(tok)) {
-            html += `<button type="button" data-pidx="${pArrIdx}" data-start="${start}" data-end="${end}" class="suspect-word bg-red-500/20 text-[var(--error)] px-0.5 rounded underline decoration-wavy cursor-pointer hover:bg-red-500/30">${escapeHtml(tok)}</button>`;
+            html += `<button type="button" data-pidx="${pArrIdx}" data-start="${start}" data-end="${end}" class="suspect-word bg-red-100 text-red-700 px-0.5 rounded underline decoration-wavy decoration-red-500 cursor-pointer hover:bg-red-200">${escapeHtml(tok)}</button>`;
           } else {
             html += escapeHtml(tok);
           }
@@ -882,7 +881,7 @@
         // Xử lý nút Sửa đoạn trực tiếp
         editBtn.addEventListener("click", () => {
           const ta = document.createElement("textarea");
-          ta.className = "w-full px-2.5 py-1.5 rounded bg-[var(--card)] border border-[var(--primary)] text-[14px] text-[var(--foreground)] font-serif";
+          ta.className = "w-full px-2.5 py-1.5 rounded bg-white border border-blue-500 text-[14px] text-slate-900 font-serif";
           ta.rows = Math.max(2, Math.ceil(pObj.text.length / 80));
           ta.value = pObj.text;
 
