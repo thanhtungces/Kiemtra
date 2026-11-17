@@ -203,6 +203,41 @@
       </div>
     </div>
 
+    <!-- Xem & Chỉnh sửa trực tiếp văn bản -->
+    <section id="editorSection" class="hidden bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border)]">
+        <div>
+          <h2 class="text-sm font-semibold">Xem & Chỉnh sửa trực tiếp văn bản</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">
+            Bấm vào <span class="bg-red-500/20 text-[var(--error)] px-1 rounded underline decoration-wavy">từ tô đỏ</span> để chọn gợi ý sửa nhanh, hoặc bấm <strong>Sửa đoạn</strong> để chỉnh toàn bộ đoạn văn.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span id="editedCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--muted-foreground)]">0 đoạn đã sửa</span>
+          <button id="downloadEditedBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] cursor-pointer">
+            Lưu chỉnh sửa & Tải .docx
+          </button>
+        </div>
+      </div>
+
+      <!-- Popover sửa từ nhanh -->
+      <div id="wordFixPopover" class="hidden fixed z-50 w-72 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-lg p-3 space-y-2 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold">Sửa từ: <code id="popTargetWord" class="text-[var(--error)]"></code></span>
+          <button id="popCloseBtn" type="button" class="text-[var(--muted-foreground)] hover:text-[var(--foreground)]">✕</button>
+        </div>
+        <div id="popSuggestions" class="flex flex-wrap gap-1.5"></div>
+        <div class="flex gap-1.5 pt-1">
+          <input id="popCustomInput" type="text" class="flex-1 px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-xs" placeholder="Nhập từ thay thế..." />
+          <button id="popApplyBtn" type="button" class="px-2.5 py-1 rounded bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold">Sửa</button>
+        </div>
+        <button id="popIgnoreBtn" type="button" class="text-[11px] text-[var(--muted-foreground)] hover:underline">Bỏ qua từ này trong phiên làm việc</button>
+      </div>
+
+      <!-- Khung trang văn bản -->
+      <div id="docViewerBody" class="bg-[var(--background)] border border-[var(--border)] rounded-lg p-4 md:p-6 space-y-2.5 max-h-[520px] overflow-y-auto" style="font-family: 'Times New Roman', Times, serif;"></div>
+    </section>
+
     <footer class="pt-3 border-t border-[var(--border)] text-xs text-[var(--muted-foreground)] flex flex-wrap justify-between gap-2">
       <span>Mã nguồn mở trên <a href="https://github.com/thanhtungces/Kiemtra" target="_blank" class="text-[var(--link)] hover:underline">GitHub (thanhtungces/Kiemtra)</a></span>
       <span>Chuẩn Phụ lục I — Nghị định 30/2020/NĐ-CP</span>
@@ -693,9 +728,8 @@
             : [`<div class="text-[var(--success)]">File đã đạt chuẩn khổ giấy, lề và phông chữ NĐ 30/2020.</div>`]),
         ].join("");
 
-        // Chạy kiểm tra từ không có nghĩa trong file .docx
-        const docText = extractDocxText(entries);
-        runSpellcheckAndRender(docText, "Đoạn");
+        // Chạy kiểm tra từ không có nghĩa trong file .docx & hiển thị trình xem/sửa
+        loadDocViewer(entries);
       } catch (err) {
         els.formatBtn.disabled = true;
         els.auditBadge.textContent = "LỖI ĐỌC FILE";
@@ -718,10 +752,25 @@
 
     let viDictSet = null;
     let viFoldIndex = new Map();
+    const ignoredWords = new Set();
+    let docParagraphs = []; // { xmlIdx, text, edited }
+    let activeFix = null;   // { pArrIdx, start, end, tok }
+
     const spellBadge = document.getElementById("spellBadge");
     const spellDetails = document.getElementById("spellDetails");
     const quickSpellInput = document.getElementById("quickSpellInput");
     const quickSpellBtn = document.getElementById("quickSpellBtn");
+    const editorSection = document.getElementById("editorSection");
+    const docViewerBody = document.getElementById("docViewerBody");
+    const editedCountBadge = document.getElementById("editedCountBadge");
+    const downloadEditedBtn = document.getElementById("downloadEditedBtn");
+    const wordFixPopover = document.getElementById("wordFixPopover");
+    const popTargetWord = document.getElementById("popTargetWord");
+    const popSuggestions = document.getElementById("popSuggestions");
+    const popCustomInput = document.getElementById("popCustomInput");
+    const popApplyBtn = document.getElementById("popApplyBtn");
+    const popIgnoreBtn = document.getElementById("popIgnoreBtn");
+    const popCloseBtn = document.getElementById("popCloseBtn");
 
     async function loadVietnameseDict() {
       try {
@@ -740,21 +789,210 @@
         }
         spellBadge.textContent = `Sẵn sàng (${viDictSet.size.toLocaleString()} từ)`;
         spellBadge.className = "text-xs px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--muted-foreground)]";
+        if (docParagraphs.length > 0) renderDocViewer();
       } catch (e) {
         spellBadge.textContent = "Chưa tải được từ điển";
         spellDetails.innerHTML = `<div class="text-[var(--warning)]">Không tải được <code>vi_words.txt</code> (${e.message}).</div>`;
       }
     }
 
-    function extractDocxText(entries) {
+    function isSuspectToken(tok) {
+      if (!viDictSet || !tok || /\d/.test(tok) || !/\p{L}/u.test(tok)) return false;
+      const lower = tok.toLowerCase();
+      if (ignoredWords.has(lower)) return false;
+      return !viDictSet.has(lower);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function loadDocViewer(entries) {
       const dec = new TextDecoder("utf-8");
       const xml = new DOMParser().parseFromString(dec.decode(entries.get("word/document.xml")), "application/xml");
-      const lines = [];
-      for (const p of xml.getElementsByTagNameNS(W_NS, "p")) {
+      const allPs = Array.from(xml.getElementsByTagNameNS(W_NS, "p"));
+      docParagraphs = [];
+      allPs.forEach((p, xmlIdx) => {
         const t = (p.textContent || "").trim();
-        if (t) lines.push(t);
+        if (t) docParagraphs.push({ xmlIdx, text: t, edited: false });
+      });
+      editorSection.classList.remove("hidden");
+      renderDocViewer();
+    }
+
+    function renderDocViewer() {
+      const tokenRe = /[\p{L}\p{N}_]+(?:[-'][\p{L}\p{N}_]+)*/gu;
+      const editedCount = docParagraphs.filter((p) => p.edited).length;
+      editedCountBadge.textContent = `${editedCount} đoạn đã sửa`;
+
+      docViewerBody.innerHTML = "";
+      docParagraphs.forEach((pObj, pArrIdx) => {
+        const row = document.createElement("div");
+        row.className = `group relative rounded-md px-2.5 py-1.5 transition border ${pObj.edited ? "border-[var(--primary)]/40 bg-[var(--primary)]/5" : "border-transparent hover:border-[var(--border)]"}`;
+
+        const headerBar = document.createElement("div");
+        headerBar.className = "flex items-center justify-between gap-2 mb-0.5 text-[11px] font-sans text-[var(--muted-foreground)]";
+        headerBar.innerHTML = `<span>Đoạn ${pArrIdx + 1}${pObj.edited ? ' · <strong class="text-[var(--primary)]">Đã sửa</strong>' : ""}</span>`;
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "opacity-80 group-hover:opacity-100 text-[11px] text-[var(--link)] hover:underline cursor-pointer";
+        editBtn.textContent = "Sửa đoạn";
+        headerBar.appendChild(editBtn);
+
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "text-[14px] leading-relaxed text-[var(--foreground)] whitespace-pre-wrap";
+
+        // Render text với highlight từ nghi vấn
+        let html = "";
+        let lastIdx = 0;
+        for (const m of pObj.text.matchAll(tokenRe)) {
+          const tok = m[0];
+          const start = m.index;
+          const end = start + tok.length;
+          html += escapeHtml(pObj.text.slice(lastIdx, start));
+          if (isSuspectToken(tok)) {
+            html += `<button type="button" data-pidx="${pArrIdx}" data-start="${start}" data-end="${end}" class="suspect-word bg-red-500/20 text-[var(--error)] px-0.5 rounded underline decoration-wavy cursor-pointer hover:bg-red-500/30">${escapeHtml(tok)}</button>`;
+          } else {
+            html += escapeHtml(tok);
+          }
+          lastIdx = end;
+        }
+        html += escapeHtml(pObj.text.slice(lastIdx));
+        contentDiv.innerHTML = html;
+
+        // Xử lý nút Sửa đoạn trực tiếp
+        editBtn.addEventListener("click", () => {
+          const ta = document.createElement("textarea");
+          ta.className = "w-full px-2.5 py-1.5 rounded bg-[var(--card)] border border-[var(--primary)] text-[14px] text-[var(--foreground)] font-serif";
+          ta.rows = Math.max(2, Math.ceil(pObj.text.length / 80));
+          ta.value = pObj.text;
+
+          const actions = document.createElement("div");
+          actions.className = "flex gap-2 mt-1.5 font-sans";
+          const saveB = document.createElement("button");
+          saveB.type = "button";
+          saveB.className = "px-2.5 py-1 rounded text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)]";
+          saveB.textContent = "Lưu đoạn";
+          const cancelB = document.createElement("button");
+          cancelB.type = "button";
+          cancelB.className = "px-2.5 py-1 rounded text-xs bg-[var(--secondary)] text-[var(--secondary-foreground)]";
+          cancelB.textContent = "Hủy";
+
+          saveB.addEventListener("click", () => {
+            pObj.text = ta.value;
+            pObj.edited = true;
+            renderDocViewer();
+          });
+          cancelB.addEventListener("click", () => renderDocViewer());
+
+          actions.append(saveB, cancelB);
+          contentDiv.replaceWith(ta);
+          row.appendChild(actions);
+          editBtn.classList.add("hidden");
+          ta.focus();
+        });
+
+        row.append(headerBar, contentDiv);
+        docViewerBody.appendChild(row);
+      });
+
+      // Cập nhật báo cáo từ nghi vấn tổng hợp
+      runSpellcheckAndRender(docParagraphs.map((p) => p.text).join("\n"), "Đoạn");
+    }
+
+    // Mở popover khi bấm vào từ tô đỏ
+    docViewerBody.addEventListener("click", (e) => {
+      const btn = e.target.closest(".suspect-word");
+      if (!btn) return;
+      const pArrIdx = Number(btn.dataset.pidx);
+      const start = Number(btn.dataset.start);
+      const end = Number(btn.dataset.end);
+      const tok = docParagraphs[pArrIdx].text.slice(start, end);
+      activeFix = { pArrIdx, start, end, tok };
+
+      popTargetWord.textContent = tok;
+      popCustomInput.value = tok;
+      const lower = tok.toLowerCase();
+      const suggestions = (viFoldIndex.get(foldWord(lower)) || []).filter((s) => s !== lower).slice(0, 6);
+
+      popSuggestions.innerHTML = "";
+      if (suggestions.length === 0) {
+        popSuggestions.innerHTML = `<span class="text-[var(--muted-foreground)] italic">Không có gợi ý tự động</span>`;
+      } else {
+        suggestions.forEach((sug) => {
+          const sb = document.createElement("button");
+          sb.type = "button";
+          sb.className = "px-2 py-0.5 rounded bg-[var(--secondary)] hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)] border border-[var(--border)] cursor-pointer";
+          sb.textContent = sug;
+          sb.addEventListener("click", () => applyWordReplacement(sug));
+          popSuggestions.appendChild(sb);
+        });
       }
-      return lines.join("\n");
+
+      const rect = btn.getBoundingClientRect();
+      wordFixPopover.style.top = `${Math.min(window.innerHeight - 190, rect.bottom + 6)}px`;
+      wordFixPopover.style.left = `${Math.min(window.innerWidth - 300, Math.max(12, rect.left))}px`;
+      wordFixPopover.classList.remove("hidden");
+    });
+
+    function applyWordReplacement(newWord) {
+      if (!activeFix || !newWord) return;
+      const { pArrIdx, start, end, tok } = activeFix;
+      // Giữ chữ hoa đầu câu nếu từ gốc viết hoa chữ đầu
+      let finalWord = newWord;
+      if (tok[0] && tok[0] === tok[0].toUpperCase() && tok[0] !== tok[0].toLowerCase()) {
+        finalWord = newWord.charAt(0).toUpperCase() + newWord.slice(1);
+      }
+      const pObj = docParagraphs[pArrIdx];
+      pObj.text = pObj.text.slice(0, start) + finalWord + pObj.text.slice(end);
+      pObj.edited = true;
+      wordFixPopover.classList.add("hidden");
+      activeFix = null;
+      renderDocViewer();
+    }
+
+    popApplyBtn.addEventListener("click", () => applyWordReplacement(popCustomInput.value.trim()));
+    popIgnoreBtn.addEventListener("click", () => {
+      if (activeFix) ignoredWords.add(activeFix.tok.toLowerCase());
+      wordFixPopover.classList.add("hidden");
+      activeFix = null;
+      renderDocViewer();
+    });
+    popCloseBtn.addEventListener("click", () => {
+      wordFixPopover.classList.add("hidden");
+      activeFix = null;
+    });
+
+    function applyParagraphEditsToEntries(entries) {
+      const editedList = docParagraphs.filter((p) => p.edited);
+      if (editedList.length === 0) return;
+      const dec = new TextDecoder("utf-8");
+      const enc = new TextEncoder();
+      const parser = new DOMParser();
+      const serializer = new XMLSerializer();
+      const xml = parser.parseFromString(dec.decode(entries.get("word/document.xml")), "application/xml");
+      const allPs = Array.from(xml.getElementsByTagNameNS(W_NS, "p"));
+
+      for (const pObj of editedList) {
+        const pEl = allPs[pObj.xmlIdx];
+        if (!pEl) continue;
+        // Giữ lại rPr của run đầu tiên (nếu có) và thay nội dung text mới
+        const firstRun = getEl(pEl, "r");
+        const firstRPr = firstRun ? getEl(firstRun, "rPr")?.cloneNode(true) : null;
+        for (const r of Array.from(pEl.getElementsByTagNameNS(W_NS, "r"))) {
+          r.remove();
+        }
+        const newRun = xml.createElementNS(W_NS, "w:r");
+        if (firstRPr) newRun.appendChild(firstRPr);
+        const tEl = xml.createElementNS(W_NS, "w:t");
+        tEl.setAttribute("xml:space", "preserve");
+        tEl.textContent = pObj.text;
+        newRun.appendChild(tEl);
+        pEl.appendChild(newRun);
+      }
+
+      entries.set("word/document.xml", enc.encode(serializer.serializeToString(xml)));
     }
 
     function runSpellcheckAndRender(text, lineLabel = "Dòng") {
@@ -773,7 +1011,7 @@
           if (!tok || /\d/.test(tok) || !/\p{L}/u.test(tok)) continue;
           totalWords++;
           const lower = tok.toLowerCase();
-          if (!viDictSet.has(lower)) {
+          if (!viDictSet.has(lower) && !ignoredWords.has(lower)) {
             const suggestions = (viFoldIndex.get(foldWord(lower)) || []).filter((s) => s !== lower).slice(0, 5);
             suspects.push({ lineNo: idx + 1, tok, suggestions });
           }
@@ -789,7 +1027,7 @@
         spellBadge.className = "text-xs px-2 py-0.5 rounded-full bg-red-500/15 text-[var(--error)] font-medium";
         const itemsHtml = suspects.slice(0, 80).map((s) => {
           const tip = s.suggestions.length ? `→ gợi ý: <span class="text-[var(--foreground)]">${s.suggestions.join(", ")}</span>` : "→ không có gợi ý";
-          return `<div><span class="text-[var(--error)] font-semibold">[!] "${s.tok}"</span> (${lineLabel} ${s.lineNo}) ${tip}</div>`;
+          return `<div><span class="text-[var(--error)] font-semibold">[!] "${escapeHtml(s.tok)}"</span> (${lineLabel} ${s.lineNo}) ${tip}</div>`;
         }).join("");
         const more = suspects.length > 80 ? `<div class="italic">... và ${suspects.length - 80} từ khác.</div>` : "";
         spellDetails.innerHTML = `<div class="text-[var(--foreground)] font-medium mb-1">Kiểm tra ${totalWords} từ, phát hiện ${suspects.length} từ nghi vấn:</div>${itemsHtml}${more}`;
@@ -825,15 +1063,19 @@
       updatePreviewAndWarnings();
     });
 
-    els.formatBtn.addEventListener("click", async () => {
+    async function exportFormattedDocx() {
       if (!currentFile) return;
       const buf = await currentFile.arrayBuffer();
       const entries = await readZip(buf);
+      applyParagraphEditsToEntries(entries);
       formatDocxEntries(entries, getCfg());
       const outBlob = await writeZip(entries);
       const outName = currentFile.name.replace(/\.docx$/i, "_nd30.docx");
       downloadBlob(outBlob, outName);
-    });
+    }
+
+    els.formatBtn.addEventListener("click", exportFormattedDocx);
+    downloadEditedBtn.addEventListener("click", exportFormattedDocx);
 
     els.createTemplateBtn.addEventListener("click", async () => {
       const docType = els.templateType.value;
