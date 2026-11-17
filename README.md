@@ -85,3 +85,35 @@ python download_dict.py
 Script sẽ tải lại từ điển mới nhất từ kho
 [hunspell-vi](https://github.com/1ec5/hunspell-vi) (cần kết nối mạng) và ghi đè
 `vi_words.txt`.
+
+---
+
+# nd30_formatter — Căn chỉnh lề & thể thức Word theo Nghị định 30/2020/NĐ-CP
+
+Tool xử lý file Word (`.docx`) tự động căn chỉnh khổ giấy A4, lề trang, phông chữ `Times New Roman`, giãn dòng, thụt đầu dòng, đánh số trang và tạo file mẫu chuẩn theo **Phụ lục I – Nghị định 30/2020/NĐ-CP**.
+
+## Cài đặt
+
+```bash
+pip install -r requirements.txt
+```
+
+## Cách dùng
+
+```bash
+# 1. Căn chỉnh 1 file Word (tạo file <tên>_nd30.docx)
+python nd30_formatter.py vanban.docx --page-numbers
+
+# 2. Căn chỉnh và chỉ định file đầu ra + tùy chỉnh lề (mm)
+python nd30_formatter.py vanban.docx -o vanban_chuan.docx --top 20 --bottom 20 --left 30 --right 15
+
+# 3. Căn chỉnh hàng loạt tất cả file .docx trong một thư mục
+python nd30_formatter.py ./thu_muc_van_ban -o ./da_chuan_hoa --page-numbers
+
+# 4. Kiểm tra file có đạt chuẩn Nghị định 30/2020 hay không
+python nd30_formatter.py vanban.docx --check
+
+# 5. Tạo file Word mẫu chuẩn thể thức NĐ 30/2020
+python nd30_formatter.py --create-template mau_cong_van.docx --doc-type "CÔNG VĂN"
+```
+
