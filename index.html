@@ -204,7 +204,7 @@
     </div>
 
     <!-- Xem & Chỉnh sửa trực tiếp văn bản -->
-    <section id="editorSection" class="hidden bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
+    <section id="editorSection" class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border)]">
         <div>
           <h2 class="text-sm font-semibold">Xem & Chỉnh sửa trực tiếp văn bản</h2>
@@ -213,8 +213,11 @@
           </p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+          <button id="loadSampleBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)] hover:opacity-90 cursor-pointer">
+            Thử văn bản mẫu
+          </button>
           <span id="editedCountBadge" class="text-xs px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--muted-foreground)]">0 đoạn đã sửa</span>
-          <button id="downloadEditedBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] cursor-pointer">
+          <button id="downloadEditedBtn" type="button" disabled class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--primary)] text-[var(--primary-foreground)] disabled:opacity-40 cursor-pointer">
             Lưu chỉnh sửa & Tải .docx
           </button>
         </div>
@@ -235,7 +238,9 @@
       </div>
 
       <!-- Khung trang văn bản -->
-      <div id="docViewerBody" class="bg-[var(--background)] border border-[var(--border)] rounded-lg p-4 md:p-6 space-y-2.5 max-h-[520px] overflow-y-auto" style="font-family: 'Times New Roman', Times, serif;"></div>
+      <div id="docViewerBody" class="bg-[var(--background)] border border-[var(--border)] rounded-lg p-4 md:p-6 space-y-2.5 max-h-[520px] overflow-y-auto text-xs text-[var(--muted-foreground)]" style="font-family: 'Times New Roman', Times, serif;">
+        Hãy tải file <code>.docx</code> ở phía trên hoặc bấm <strong>Thử văn bản mẫu</strong> để xem, phát hiện từ sai và chỉnh sửa trực tiếp tại đây.
+      </div>
     </section>
 
     <footer class="pt-3 border-t border-[var(--border)] text-xs text-[var(--muted-foreground)] flex flex-wrap justify-between gap-2">
@@ -807,6 +812,19 @@
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
+    const loadSampleBtn = document.getElementById("loadSampleBtn");
+
+    loadSampleBtn.addEventListener("click", () => {
+      docParagraphs = [
+        { xmlIdx: 0, text: "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM", edited: false },
+        { xmlIdx: 1, text: "Độc lập - Tự do - Hạnh phúc", edited: false },
+        { xmlIdx: 2, text: "Báo cáo nhanh về công tác chuẩn hóa văn bản hành chinhs theo Nghị định 30.", edited: false },
+        { xmlIdx: 3, text: "Hôm nay trời có muâ nhẹ, nhưng tiến độ vẫn đạt yêu cầu và không có từ lkjhgf vô nghĩa.", edited: false },
+      ];
+      downloadEditedBtn.disabled = true;
+      renderDocViewer();
+    });
+
     function loadDocViewer(entries) {
       const dec = new TextDecoder("utf-8");
       const xml = new DOMParser().parseFromString(dec.decode(entries.get("word/document.xml")), "application/xml");
@@ -816,7 +834,7 @@
         const t = (p.textContent || "").trim();
         if (t) docParagraphs.push({ xmlIdx, text: t, edited: false });
       });
-      editorSection.classList.remove("hidden");
+      downloadEditedBtn.disabled = false;
       renderDocViewer();
     }
 
