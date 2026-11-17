@@ -183,6 +183,23 @@
             Tải lên một file <code>.docx</code> để xem kết quả kiểm tra khổ giấy, lề trang và phông chữ.
           </div>
         </div>
+
+        <!-- Spellcheck / Meaningless Words Report -->
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold">Tìm lỗi từ không có nghĩa</h2>
+            <span id="spellBadge" class="text-xs px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--muted-foreground)]">Đang tải từ điển...</span>
+          </div>
+          <div class="space-y-2">
+            <textarea id="quickSpellInput" rows="2" placeholder="Hoặc dán nhanh văn bản tiếng Việt vào đây để tìm từ vô nghĩa..." class="w-full px-2.5 py-1.5 rounded-lg text-xs bg-[var(--background)] border border-[var(--border)] resize-y"></textarea>
+            <button id="quickSpellBtn" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--secondary)] text-[var(--secondary-foreground)] border border-[var(--border)] hover:opacity-90 cursor-pointer">
+              Kiểm tra văn bản
+            </button>
+          </div>
+          <div id="spellDetails" class="text-xs text-[var(--muted-foreground)] space-y-1.5 max-h-60 overflow-y-auto">
+            Tải file <code>.docx</code> hoặc nhập văn bản để phát hiện từ sai chính tả / không có nghĩa.
+          </div>
+        </div>
       </div>
     </div>
 
@@ -675,12 +692,115 @@
             ? report.issues.map((err) => `<div class="text-[var(--error)]">[!] ${err}</div>`)
             : [`<div class="text-[var(--success)]">File đã đạt chuẩn khổ giấy, lề và phông chữ NĐ 30/2020.</div>`]),
         ].join("");
+
+        // Chạy kiểm tra từ không có nghĩa trong file .docx
+        const docText = extractDocxText(entries);
+        runSpellcheckAndRender(docText, "Đoạn");
       } catch (err) {
         els.formatBtn.disabled = true;
         els.auditBadge.textContent = "LỖI ĐỌC FILE";
         els.auditDetails.innerHTML = `<div class="text-[var(--error)]">${err.message}</div>`;
       }
     }
+
+    // =========================================================================
+    // Kiểm tra lỗi chính tả & từ không có nghĩa tiếng Việt (dùng vi_words.txt)
+    // =========================================================================
+    const TONE_MAP = {
+      "á":"a","à":"a","ả":"a","ã":"a","ạ":"a","ă":"a","ắ":"a","ằ":"a","ẳ":"a","ẵ":"a","ặ":"a",
+      "â":"a","ấ":"a","ầ":"a","ẩ":"a","ẫ":"a","ậ":"a","é":"e","è":"e","ẻ":"e","ẽ":"e","ẹ":"e",
+      "ê":"e","ế":"e","ề":"e","ể":"e","ễ":"e","ệ":"e","í":"i","ì":"i","ỉ":"i","ĩ":"i","ị":"i",
+      "ó":"o","ò":"o","ỏ":"o","õ":"o","ọ":"o","ô":"o","ố":"o","ồ":"o","ổ":"o","ỗ":"o","ộ":"o",
+      "ơ":"o","ớ":"o","ờ":"o","ở":"o","ỡ":"o","ợ":"o","ú":"u","ù":"u","ủ":"u","ũ":"u","ụ":"u",
+      "ư":"u","ứ":"u","ừ":"u","ử":"u","ữ":"u","ự":"u","ý":"y","ỳ":"y","ỷ":"y","ỹ":"y","ỵ":"y","đ":"d"
+    };
+    const foldWord = (w) => Array.from(w.toLowerCase()).map((c) => TONE_MAP[c] || c).join("");
+
+    let viDictSet = null;
+    let viFoldIndex = new Map();
+    const spellBadge = document.getElementById("spellBadge");
+    const spellDetails = document.getElementById("spellDetails");
+    const quickSpellInput = document.getElementById("quickSpellInput");
+    const quickSpellBtn = document.getElementById("quickSpellBtn");
+
+    async function loadVietnameseDict() {
+      try {
+        const res = await fetch("./vi_words.txt");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        viDictSet = new Set();
+        viFoldIndex = new Map();
+        for (const raw of text.split(/\r?\n/)) {
+          const w = raw.trim().toLowerCase();
+          if (!w) continue;
+          viDictSet.add(w);
+          const f = foldWord(w);
+          if (!viFoldIndex.has(f)) viFoldIndex.set(f, []);
+          viFoldIndex.get(f).push(w);
+        }
+        spellBadge.textContent = `Sẵn sàng (${viDictSet.size.toLocaleString()} từ)`;
+        spellBadge.className = "text-xs px-2 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--muted-foreground)]";
+      } catch (e) {
+        spellBadge.textContent = "Chưa tải được từ điển";
+        spellDetails.innerHTML = `<div class="text-[var(--warning)]">Không tải được <code>vi_words.txt</code> (${e.message}).</div>`;
+      }
+    }
+
+    function extractDocxText(entries) {
+      const dec = new TextDecoder("utf-8");
+      const xml = new DOMParser().parseFromString(dec.decode(entries.get("word/document.xml")), "application/xml");
+      const lines = [];
+      for (const p of xml.getElementsByTagNameNS(W_NS, "p")) {
+        const t = (p.textContent || "").trim();
+        if (t) lines.push(t);
+      }
+      return lines.join("\n");
+    }
+
+    function runSpellcheckAndRender(text, lineLabel = "Dòng") {
+      if (!viDictSet) {
+        spellDetails.innerHTML = `<div class="text-[var(--warning)]">Từ điển chưa sẵn sàng, vui lòng thử lại sau giây lát.</div>`;
+        return;
+      }
+      const tokenRe = /[\p{L}\p{N}_]+(?:[-'][\p{L}\p{N}_]+)*/gu;
+      const lines = text.split(/\r?\n/);
+      let totalWords = 0;
+      const suspects = [];
+
+      lines.forEach((line, idx) => {
+        for (const m of line.matchAll(tokenRe)) {
+          const tok = m[0];
+          if (!tok || /\d/.test(tok) || !/\p{L}/u.test(tok)) continue;
+          totalWords++;
+          const lower = tok.toLowerCase();
+          if (!viDictSet.has(lower)) {
+            const suggestions = (viFoldIndex.get(foldWord(lower)) || []).filter((s) => s !== lower).slice(0, 5);
+            suspects.push({ lineNo: idx + 1, tok, suggestions });
+          }
+        }
+      });
+
+      if (suspects.length === 0) {
+        spellBadge.textContent = "0 TỪ LỖI";
+        spellBadge.className = "text-xs px-2 py-0.5 rounded-full bg-green-500/15 text-[var(--success)] font-medium";
+        spellDetails.innerHTML = `<div class="text-[var(--success)]">Đã kiểm tra ${totalWords} từ — không phát hiện từ vô nghĩa hoặc sai chính tả.</div>`;
+      } else {
+        spellBadge.textContent = `${suspects.length} TỪ NGHI VẤN`;
+        spellBadge.className = "text-xs px-2 py-0.5 rounded-full bg-red-500/15 text-[var(--error)] font-medium";
+        const itemsHtml = suspects.slice(0, 80).map((s) => {
+          const tip = s.suggestions.length ? `→ gợi ý: <span class="text-[var(--foreground)]">${s.suggestions.join(", ")}</span>` : "→ không có gợi ý";
+          return `<div><span class="text-[var(--error)] font-semibold">[!] "${s.tok}"</span> (${lineLabel} ${s.lineNo}) ${tip}</div>`;
+        }).join("");
+        const more = suspects.length > 80 ? `<div class="italic">... và ${suspects.length - 80} từ khác.</div>` : "";
+        spellDetails.innerHTML = `<div class="text-[var(--foreground)] font-medium mb-1">Kiểm tra ${totalWords} từ, phát hiện ${suspects.length} từ nghi vấn:</div>${itemsHtml}${more}`;
+      }
+    }
+
+    quickSpellBtn.addEventListener("click", () => {
+      const txt = quickSpellInput.value.trim();
+      if (!txt) return;
+      runSpellcheckAndRender(txt, "Dòng");
+    });
 
     els.dropZone.addEventListener("click", () => els.fileInput.click());
     els.fileInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
@@ -723,6 +843,7 @@
     });
 
     updatePreviewAndWarnings();
+    loadVietnameseDict();
   </script>
 </body>
 </html>
